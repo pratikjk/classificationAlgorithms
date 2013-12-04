@@ -168,6 +168,7 @@ public class Instances {
 	
 	public Instances getTrainingForCrossValidation(int numOfFolds, int foldToValidate){
 		Instances train=new Instances();
+		train.setHeader(getHeader());
 		int instancePerFold = this.getDataSetSize()/numOfFolds;
 		int remainder = this.getDataSetSize()%numOfFolds;
 		train.add(getInstancesSubset(0,((foldToValidate-1)*instancePerFold)));

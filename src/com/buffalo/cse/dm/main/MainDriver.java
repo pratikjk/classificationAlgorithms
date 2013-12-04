@@ -20,7 +20,7 @@ public class MainDriver {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		DataFileReader ip = new DataFileReader("dataset1");
+		DataFileReader ip = new DataFileReader("dataset2");
 		try {
 			Instances data=ip.loadDataFromFile();
 			//testCV(data);

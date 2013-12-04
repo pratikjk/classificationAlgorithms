@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.buffalo.cse.dm.classification.decisiontree.TreeNode.Leaf;
 import com.buffalo.cse.dm.classification.decisiontree.TreeNode.Binary;
+import com.buffalo.cse.dm.core.AttributeType;
 import com.buffalo.cse.dm.core.Instance;
 import com.buffalo.cse.dm.core.InstanceComparator;
 import com.buffalo.cse.dm.core.Instances;
@@ -37,15 +38,34 @@ public class ID3 extends DecisionTreeClassifier {
 			return maxClassLabel(data);
 		}else{
 			// find the best attribute to split upon
-			EntropyBasedAttributeSelection ebas = new EntropyBasedAttributeSelection();
-			SplitModel sm = ebas.bestAttribute(data, nonTargetAttributes);
+			AttributeSelector as = new EntropyBasedAttributeSelection();
+			SplitModel sm = as.bestAttribute(data, nonTargetAttributes);
 			
 			// sort the data on the best attribute
 			InstanceComparator ic = new InstanceComparator(sm.getAttributeIndex());
 			Collections.sort(data.getDataSet(), ic);
 			
-			Instances leftData = data.getInstancesSubset(0,sm.getSplitCriteriaIndex());
-			Instances rightData = data.getInstancesSubset(sm.getSplitCriteriaIndex());
+			Instances leftData=null;
+			Instances rightData=null;
+			if(data.getHeader().get(sm.getAttributeIndex())==AttributeType.NUMERIC){
+				leftData = data.getInstancesSubset(0,sm.getSplitCriteriaIndex());
+				rightData = data.getInstancesSubset(sm.getSplitCriteriaIndex());
+			}else{
+				double val = data.getInstance(0).getAttribute(sm.getAttributeIndex()).getAttributeValue();
+				int breakIndex=data.getDataSetSize()-1;
+				for(int i=1;i<data.getDataSetSize();i++){
+					double curr = data.getInstance(i).getAttribute(sm.getAttributeIndex()).getAttributeValue();
+					if(curr!=val){
+						breakIndex=i;
+						break;
+					}
+				}
+				leftData = data.getInstancesSubset(0,breakIndex);
+				rightData = data.getInstancesSubset(breakIndex);
+				sm.setSplitCriteria(1.0);
+			}
+			
+			// make the old data ready for garbage collection
 			data=null;
 			node=new Binary();
 			((Binary)node).setSplitModel(sm);
