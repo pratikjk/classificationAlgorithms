@@ -81,7 +81,9 @@ public class EntropyBasedAttributeSelection extends AttributeSelector {
 		}
 		return count;
 	}
-
+	/*
+	 * Assuming two class classification, calculates Entropy given the probability of P(Y=0)
+	 */
 	private double entropy(double val) {
 		double result;
 		

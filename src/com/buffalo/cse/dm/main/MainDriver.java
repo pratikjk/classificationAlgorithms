@@ -4,8 +4,9 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Random;
 
+import com.buffalo.cse.dm.classification.analysis.ConfusionMatrix;
 import com.buffalo.cse.dm.classification.decisiontree.AttributeSelector;
-import com.buffalo.cse.dm.classification.decisiontree.DecisionTreeClassifier;
+import com.buffalo.cse.dm.classification.decisiontree.DecisionTree;
 import com.buffalo.cse.dm.classification.decisiontree.EntropyBasedAttributeSelection;
 import com.buffalo.cse.dm.classification.decisiontree.ID3;
 import com.buffalo.cse.dm.classification.decisiontree.TreeNode;
@@ -49,7 +50,7 @@ public class MainDriver {
 	
 	public static void testCLassify(Instances data){
 		Random index = new Random();
-		DecisionTreeClassifier dtc = new ID3();
+		DecisionTree dtc = new ID3();
 		TreeNode tree = dtc.buildModel(data);
 		Instance test = data.getInstance(index.nextInt(data.getDataSetSize()));
 		dtc.classify(test);
@@ -64,27 +65,45 @@ public class MainDriver {
 	}
 	
 	public static void testCLassifyWithCV(Instances data){
-		DecisionTreeClassifier dtc = new ID3();
-		double averageCorrect=0;
+		DecisionTree dtc = new ID3();
+		ConfusionMatrix averageConfusionMatrix = new ConfusionMatrix();
 		for(int i=1;i<=10;i++){
 			Instances train=data.getTrainingForCrossValidation(10, i);
 			dtc.buildModel(train);
 			Instances test = data.getTestForCrossValidation();
-			double correctRatio=0;
+			ConfusionMatrix cm = new ConfusionMatrix();
 			for(int j=0;j<test.getDataSetSize();j++){
 				Instance t = test.getInstance(j);
 				dtc.classify(t);
-				//System.out.println(t+" "+t.isCorrectClassified());
+				//System.out.println(t.getPredictedClass()+" "+t.isCorrectClassified());
 				if(t.isCorrectClassified()){
-					correctRatio+=1;
+					// true
+					if(t.getClassValue()==1){
+						// positive
+						cm.incrementTruePositive();
+					}else{
+						// negative
+						cm.incrementTrueNegative();
+					}
+				}else{
+					// false
+					if(t.getClassValue()==1){
+						// positive
+						cm.incrementFalsePositive();
+					}else{
+						// negative
+						cm.incrementFalseNegative();
+					}
 				}
 			}
-			correctRatio/=test.getDataSetSize();
-			System.out.format("for fold %2d correctRatio: %3.2f",i,correctRatio);
+			System.out.format("******************** Fold %2d ********************\n",i);
+			System.out.format("\t Accuracy %f \n",cm.getAccuracy());
+			System.out.format("\t Precision %f \n",cm.getPrecision());
+			System.out.format("\t Recall %f \n",cm.getRecall());
+			System.out.format("\t F-Measure %f \n",cm.getFmeasure());
 			System.out.println();
-			averageCorrect+=correctRatio;
+			//System.out.format("************************************************\n",i);
 		}
-		System.out.format("for 10 fold cv Average Correct Ratio: %3.2f",(averageCorrect/10));
 		
 	}
 

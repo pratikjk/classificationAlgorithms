@@ -11,7 +11,7 @@ import com.buffalo.cse.dm.core.Instance;
 import com.buffalo.cse.dm.core.InstanceComparator;
 import com.buffalo.cse.dm.core.Instances;
 
-public class ID3 extends DecisionTreeClassifier {
+public class ID3 extends DecisionTree {
 
 
 	@Override
