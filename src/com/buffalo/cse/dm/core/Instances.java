@@ -1,6 +1,7 @@
 package com.buffalo.cse.dm.core;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -171,6 +172,7 @@ public class Instances {
 		train.setHeader(getHeader());
 		int instancePerFold = this.getDataSetSize()/numOfFolds;
 		int remainder = this.getDataSetSize()%numOfFolds;
+		Collections.shuffle(this.getDataSet());
 		train.add(getInstancesSubset(0,((foldToValidate-1)*instancePerFold)));
 		//System.out.print(0 +" to "+((foldToValidate-1)*instancePerFold));
 		setTestForCrossValidation(getInstancesSubset(((foldToValidate-1)*instancePerFold), foldToValidate*instancePerFold));
