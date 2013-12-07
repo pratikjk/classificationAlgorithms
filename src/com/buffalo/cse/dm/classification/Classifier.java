@@ -6,8 +6,8 @@ import com.buffalo.cse.dm.core.Instances;
 
 public interface Classifier {
 
-	public TreeNode buildModel(Instances trainData);
-	
-	public void classify(Instance testData);
+    public TreeNode buildModel(Instances trainData);
+
+    public void classify(Instance testData);
 
 }
