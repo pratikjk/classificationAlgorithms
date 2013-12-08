@@ -87,9 +87,11 @@ public abstract class TreeNode {
 
         @Override
         public String toString() {
-            return this.getSplitModel().getSplitCriteria() + "\n{"
-                    + lChild.toString() + "} , " + "{" + rChild.toString()
-                    + "}";
+            return String.format("%4.2f", this.getSplitModel()
+                    .getSplitCriteria())
+                    + " | " + this.getSplitModel().getAttributeIndex();
+            // + "\n{"+ lChild.toString() + "} , " + "{" + rChild.toString()+
+            // "}";
         }
 
     }

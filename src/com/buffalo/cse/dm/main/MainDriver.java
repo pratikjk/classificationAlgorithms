@@ -27,7 +27,8 @@ public class MainDriver {
             Instances data = ip.loadDataFromFile("\t");
             // testCV(data);
             // testCLassifyWithCV(data);
-            testRandomFoest(data);
+            // testRandomFoest(data);
+            testRandomForestWithCV(data);
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -70,7 +71,7 @@ public class MainDriver {
     public static void testCLassifyWithCV(Instances data) {
         DecisionTree dtc = new ID3();
         ConfusionMatrix averageConfusionMatrix = new ConfusionMatrix();
-        int crossValidation = 10;
+        int crossValidation = 2;
         for (int i = 1; i <= crossValidation; i++) {
             Instances train = data.getTrainingForCrossValidation(
                     crossValidation, i);
@@ -164,6 +165,67 @@ public class MainDriver {
         System.out.format("\t Recall %f \n", cm.getRecall());
         System.out.format("\t F-Measure %f \n", cm.getFmeasure());
         System.out.println();
+    }
+
+    public static void testRandomForestWithCV(Instances data) {
+        ConfusionMatrix averageConfusionMatrix = new ConfusionMatrix();
+        int crossValidation = 10;
+        for (int i = 1; i <= crossValidation; i++) {
+            Instances train = data.getTrainingForCrossValidation(
+                    crossValidation, i);
+            RandomForest rf = new RandomForest(10, train);
+            rf.startForestBuild();
+            Instances test = data.getTestForCrossValidation();
+            ConfusionMatrix cm = new ConfusionMatrix();
+            for (int j = 0; j < test.getDataSetSize(); j++) {
+                Instance t = test.getInstance(j);
+                rf.classify(t);
+                // System.out.println(t.getPredictedClass()+" "+t.isCorrectClassified());
+                if (t.isCorrectClassified()) {
+                    // true
+                    if (t.getClassValue() == 1) {
+                        // positive
+                        cm.incrementTruePositive();
+                    } else {
+                        // negative
+                        cm.incrementTrueNegative();
+                    }
+                } else {
+                    // false
+                    if (t.getClassValue() == 1) {
+                        // positive
+                        cm.incrementFalsePositive();
+                    } else {
+                        // negative
+                        cm.incrementFalseNegative();
+                    }
+                }
+            }
+            averageConfusionMatrix.addToTruePositive(cm.getTruePositive());
+            averageConfusionMatrix.addToFalsePositive(cm.getFalsePositive());
+            averageConfusionMatrix.addToTrueNegative(cm.getTrueNegative());
+            averageConfusionMatrix.addToFalseNegative(cm.getFalseNegative());
+
+            /*
+             * System.out.format(
+             * "******************** Fold %2d ********************\n",i);
+             * System.out.format("\t Accuracy %f \n",cm.getAccuracy());
+             * System.out.format("\t Precision %f \n",cm.getPrecision());
+             * System.out.format("\t Recall %f \n",cm.getRecall());
+             * System.out.format("\t F-Measure %f \n",cm.getFmeasure());
+             * System.out.println();
+             */
+            // System.out.format("************************************************\n",i);
+        }
+        averageConfusionMatrix.allDivideBy(crossValidation);
+        System.out.format("\t Average Accuracy %f \n",
+                averageConfusionMatrix.getAccuracy());
+        System.out.format("\t Average Precision %f \n",
+                averageConfusionMatrix.getPrecision());
+        System.out.format("\t Average Recall %f \n",
+                averageConfusionMatrix.getRecall());
+        System.out.format("\t Average F-Measure %f \n",
+                averageConfusionMatrix.getFmeasure());
     }
 
 }

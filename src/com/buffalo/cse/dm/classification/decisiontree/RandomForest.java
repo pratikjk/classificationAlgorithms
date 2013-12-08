@@ -25,10 +25,8 @@ public class RandomForest {
         forest = new ArrayList<DecisionTree>(numOfTrees);
         trainData = data;
         totalAttributes = trainData.getInstance(0).getNumOfAttributes();
-        System.out.println("total attributes:" + totalAttributes);
         numOfAttributesPerTree = ((int) Math.round(Math.log(totalAttributes)
                 / Math.log(2) + 1));
-        System.out.println("attributes per tree:" + numOfAttributesPerTree);
     }
 
     public void startForestBuild() {
@@ -68,7 +66,7 @@ public class RandomForest {
 
         @Override
         public void run() {
-            DecisionTree tree = new ID3();
+            DecisionTree tree = new ID3(totalAttributes, numOfAttributesPerTree);
             forest.add(tree);
             tree.buildModel(trainData);
         }
