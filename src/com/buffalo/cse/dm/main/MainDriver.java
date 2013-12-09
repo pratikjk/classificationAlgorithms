@@ -27,9 +27,9 @@ public class MainDriver {
             Instances data = ip.loadDataFromFile("\t");
             // MainDriver md = new MainDriver();
             // testCV(data);
-            // testCLassifyWithCV(data);
-            testRandomFoest(data);
-            // testRandomForestWithCV(data);
+            testCLassifyWithCV(data);
+            // testRandomFoest(data);
+            testRandomForestWithCV(data);
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -72,7 +72,7 @@ public class MainDriver {
     public static void testCLassifyWithCV(Instances data) {
         DecisionTree dtc = new ID3();
         ConfusionMatrix averageConfusionMatrix = new ConfusionMatrix();
-        int crossValidation = 2;
+        int crossValidation = 10;
         for (int i = 1; i <= crossValidation; i++) {
             Instances train = data.getTrainingForCrossValidation(
                     crossValidation, i);
@@ -121,6 +121,8 @@ public class MainDriver {
             // System.out.format("************************************************\n",i);
         }
         averageConfusionMatrix.allDivideBy(crossValidation);
+        System.out
+                .println("******************** Decision Tree ********************");
         System.out.format("\t Average Accuracy %f \n",
                 averageConfusionMatrix.getAccuracy());
         System.out.format("\t Average Precision %f \n",
@@ -129,6 +131,7 @@ public class MainDriver {
                 averageConfusionMatrix.getRecall());
         System.out.format("\t Average F-Measure %f \n",
                 averageConfusionMatrix.getFmeasure());
+        System.out.format("************************************************\n");
     }
 
     public static void testRandomFoest(Instances data) {
@@ -160,12 +163,13 @@ public class MainDriver {
                 }
             }
         }
-        // System.out.format("******************** Fold %2d ********************\n",i);
+        System.out
+                .format("************* Random Forest withour CV *************\n");
         System.out.format("\t Accuracy %f \n", cm.getAccuracy());
         System.out.format("\t Precision %f \n", cm.getPrecision());
         System.out.format("\t Recall %f \n", cm.getRecall());
         System.out.format("\t F-Measure %f \n", cm.getFmeasure());
-        System.out.println();
+        System.out.format("************************************************\n");
     }
 
     public static void testRandomForestWithCV(Instances data) {
@@ -219,6 +223,8 @@ public class MainDriver {
             // System.out.format("************************************************\n",i);
         }
         averageConfusionMatrix.allDivideBy(crossValidation);
+        System.out
+                .println("******************** Random Forest ********************");
         System.out.format("\t Average Accuracy %f \n",
                 averageConfusionMatrix.getAccuracy());
         System.out.format("\t Average Precision %f \n",
@@ -227,6 +233,7 @@ public class MainDriver {
                 averageConfusionMatrix.getRecall());
         System.out.format("\t Average F-Measure %f \n",
                 averageConfusionMatrix.getFmeasure());
+        System.out.format("************************************************\n");
     }
 
 }

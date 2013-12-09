@@ -24,7 +24,7 @@ public class RandomForest {
     public RandomForest(int numOfTrees, Instances data) {
         this.numOfTrees = numOfTrees;
         forest = new ArrayList<DecisionTree>(numOfTrees);
-        trainData = getBootStrapSample(data);
+        trainData = data;
         totalAttributes = trainData.getInstance(0).getNumOfAttributes();
         numOfAttributesPerTree = ((int) Math.round(Math.log(totalAttributes)
                 / Math.log(2) + 1));
@@ -46,7 +46,8 @@ public class RandomForest {
     public void startForestBuild() {
         treePool = Executors.newFixedThreadPool(NUM_THREADS);
         for (int t = 0; t < numOfTrees; t++) {
-            treePool.execute(new RunnableID3(trainData, this, t + 1));
+            treePool.execute(new RunnableID3(getBootStrapSample(trainData),
+                    this, t + 1));
         }
         treePool.shutdown();
         try {
@@ -60,7 +61,7 @@ public class RandomForest {
         int[] predictions = new int[2];
         for (int i = 0; i < numOfTrees; i++) {
             forest.get(i).classify(testData);
-            predictions[testData.getClassValue()]++;
+            predictions[testData.getPredictedClass()]++;
         }
         int classz = predictions[0] > predictions[1] ? 0 : 1;
         testData.setClassValue(classz);
