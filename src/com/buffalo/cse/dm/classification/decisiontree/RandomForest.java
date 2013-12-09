@@ -2,6 +2,7 @@ package com.buffalo.cse.dm.classification.decisiontree;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -23,10 +24,23 @@ public class RandomForest {
     public RandomForest(int numOfTrees, Instances data) {
         this.numOfTrees = numOfTrees;
         forest = new ArrayList<DecisionTree>(numOfTrees);
-        trainData = data;
+        trainData = getBootStrapSample(data);
         totalAttributes = trainData.getInstance(0).getNumOfAttributes();
         numOfAttributesPerTree = ((int) Math.round(Math.log(totalAttributes)
                 / Math.log(2) + 1));
+        // numOfAttributesPerTree = (int) Math.sqrt(totalAttributes);
+    }
+
+    private Instances getBootStrapSample(Instances data) {
+        int N = data.getDataSetSize();
+        Instances bootStrappedSample = new Instances();
+        bootStrappedSample.setHeader(data.getHeader());
+        for (int i = 0; i < N; i++) {
+            Random r = new Random();
+            int num = r.nextInt(N);
+            bootStrappedSample.addInstance(data.getInstance(num));
+        }
+        return bootStrappedSample;
     }
 
     public void startForestBuild() {

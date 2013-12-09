@@ -25,10 +25,11 @@ public class MainDriver {
         DataFileReader ip = new DataFileReader("dataset2");
         try {
             Instances data = ip.loadDataFromFile("\t");
+            // MainDriver md = new MainDriver();
             // testCV(data);
             // testCLassifyWithCV(data);
-            // testRandomFoest(data);
-            testRandomForestWithCV(data);
+            testRandomFoest(data);
+            // testRandomForestWithCV(data);
 
         } catch (IOException e) {
             e.printStackTrace();
