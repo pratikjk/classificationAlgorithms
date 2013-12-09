@@ -44,11 +44,4 @@ public class Attribute {
         return attributeValue + "";
     }
 
-    /**
-     * @param args
-     */
-    public static void main(String[] args) {
-
-    }
-
 }

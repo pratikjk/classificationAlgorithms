@@ -22,9 +22,9 @@ public class MainDriver {
      * @param args
      */
     public static void main(String[] args) {
-        DataFileReader ip = new DataFileReader("dataset2");
+        DataFileReader ip = new DataFileReader("dataset1", "\t");
         try {
-            Instances data = ip.loadDataFromFile("\t");
+            Instances data = ip.loadDataFromFile();
             // MainDriver md = new MainDriver();
             // testCV(data);
             testCLassifyWithCV(data);

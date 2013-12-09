@@ -76,7 +76,7 @@ public class ID3 extends DecisionTree {
             sm.setSplitCriteria(splitPoint);
             Instances leftData = null;
             Instances rightData = null;
-            if (data.getHeader().get(sm.getAttributeIndex()) == AttributeType.NUMERIC) {
+            if (data.getHeader().getType(sm.getAttributeIndex()) == AttributeType.NUMERIC) {
                 leftData = data.getInstancesSubset(0,
                         sm.getSplitCriteriaIndex());
                 rightData = data.getInstancesSubset(sm.getSplitCriteriaIndex());
@@ -143,7 +143,7 @@ public class ID3 extends DecisionTree {
             sm.setSplitCriteria(splitPoint);
             Instances leftData = null;
             Instances rightData = null;
-            if (data.getHeader().get(sm.getAttributeIndex()) == AttributeType.NUMERIC) {
+            if (data.getHeader().getType(sm.getAttributeIndex()) == AttributeType.NUMERIC) {
                 leftData = data.getInstancesSubset(0,
                         sm.getSplitCriteriaIndex());
                 rightData = data.getInstancesSubset(sm.getSplitCriteriaIndex());

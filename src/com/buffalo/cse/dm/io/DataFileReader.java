@@ -1,14 +1,13 @@
 package com.buffalo.cse.dm.io;
 
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Map;
 
 import com.buffalo.cse.dm.core.Attribute;
 import com.buffalo.cse.dm.core.AttributeType;
+import com.buffalo.cse.dm.core.HeaderFormat;
 import com.buffalo.cse.dm.core.Instance;
 import com.buffalo.cse.dm.core.Instances;
 
@@ -22,35 +21,41 @@ public class DataFileReader {
     private BufferedReader formatReader;
     private BufferedReader testReader;
     private String stemFileName;
+    private String delimiter;
 
-    public DataFileReader(String stemFileName) {
+    public DataFileReader(String stemFileName, String delimiter) {
         assert (stemFileName != null);
         this.stemFileName = stemFileName;
+        this.delimiter = delimiter;
     }
 
-    public Instances loadDataFromFile(String delimiter) throws IOException {
+    public Instances loadDataFromFile() throws IOException {
         String line;
         dataReader = new BufferedReader(new FileReader(stemFileName + ".txt"));
         Instances dataSet = new Instances();
-        dataSet.setHeader(loadDataFormatFromFile());
+        HeaderFormat header = loadDataFormatFromFile();
+        dataSet.setHeader(header);
         while ((line = dataReader.readLine()) != null) {
             String[] tokens = line.split(delimiter);
             Instance vector = new Instance(tokens.length - 1);
             for (int i = 0; i < tokens.length - 1; i++) {
                 Attribute atr = new Attribute();
-                atr.setAttributeType(dataSet.getHeader().get(i));
-                if (dataSet.getHeader().get(i) == AttributeType.NUMERIC) {
+                atr.setAttributeType(header.getType(i));
+                if (atr.getAttributeType() == AttributeType.NUMERIC) {
                     atr.setAttributeValue(Double.parseDouble(tokens[i]));
-                } else if (dataSet.getHeader().get(i) == AttributeType.NOMINAL) {
+                } else if (atr.getAttributeType() == AttributeType.NOMINAL) {
                     // hardcoding for string format "Present"/"Absent"
-                    if (tokens[i].equalsIgnoreCase("present"))
-                        atr.setAttributeValue(1);
-                    else if (tokens[i].equalsIgnoreCase("absent")) {
-                        atr.setAttributeValue(0);
-                    } else {
-                        throw new RuntimeException(
-                                "Nominal Attribute other than Hardcoded 'Present' and 'Absent'");
-                    }
+                    // if (tokens[i].equalsIgnoreCase("present"))
+                    // atr.setAttributeValue(1);
+                    // else if (tokens[i].equalsIgnoreCase("absent")) {
+                    // atr.setAttributeValue(0);
+                    Map<String, Integer> values = header.getNominalValues(i);
+                    atr.setAttributeValue(values.get(tokens[i].toLowerCase()));
+                    /*
+                     * } else { throw new RuntimeException(
+                     * "Nominal Attribute other than Hardcoded 'Present' and 'Absent'"
+                     * ); }
+                     */
                 }
                 vector.addAttribute(atr);
             }
@@ -61,62 +66,38 @@ public class DataFileReader {
         return dataSet;
     }
 
-    private List<AttributeType> loadDataFormatFromFile() throws IOException {
+    private HeaderFormat loadDataFormatFromFile() throws IOException {
         String line;
         formatReader = new BufferedReader(new FileReader(stemFileName
                 + ".format"));
-        List<AttributeType> header = new ArrayList<AttributeType>();
+        // List<AttributeType> header = new ArrayList<AttributeType>();
+        HeaderFormat hFormat = new HeaderFormat();
         while ((line = formatReader.readLine()) != null) {
             line = line.trim();
-            if (line.equals("nominal")) {
-                header.add(AttributeType.NOMINAL);
-            } else if (line.equals("numeric")) {
-                header.add(AttributeType.NUMERIC);
+            if (line.startsWith("nominal")) {
+                String[] values = getNominalValues(line);
+                hFormat.add(AttributeType.NOMINAL, values);
+            } else if (line.startsWith("numeric")) {
+                hFormat.add(AttributeType.NUMERIC, null);
             }
         }
 
         formatReader.close();
-        return header;
+        return hFormat;
     }
 
-    public Instances loadTestFromFile() throws IOException {
-        String line;
-        Instances dataSet = new Instances();
-        testReader = new BufferedReader(new FileReader(stemFileName + ".test"));
-        dataSet.setHeader(loadDataFormatFromFile());
-        while ((line = testReader.readLine()) != null) {
-            String[] tokens = line.split("\t");
-            Instance vector = new Instance(tokens.length);
-            for (int i = 0; i < tokens.length; i++) {
-                Attribute atr = new Attribute();
-                atr.setAttributeType(dataSet.getHeader().get(i));
-                if (dataSet.getHeader().get(i) == AttributeType.NUMERIC) {
-                    atr.setAttributeValue(Double.parseDouble(tokens[i]));
-                } else if (dataSet.getHeader().get(i) == AttributeType.NOMINAL) {
-                    // hardcoding for string format "Present"/"Absent"
-                    if (tokens[i].equalsIgnoreCase("present"))
-                        atr.setAttributeValue(1);
-                    else if (tokens[i].equalsIgnoreCase("absent")) {
-                        atr.setAttributeValue(0);
-                    } else {
-                        throw new RuntimeException(
-                                "Nominal Attribute other than Hardcoded 'Present' and 'Absent'");
-                    }
-                }
-                vector.addAttribute(atr);
-            }
-            // vector.setClassValue(Integer.parseInt(tokens[tokens.length-1]));
-            dataSet.addInstance(vector);
-        }
-        testReader.close();
-        return dataSet;
-
+    // will get a line of format nominal\t{val1,val2}
+    private String[] getNominalValues(String line) {
+        String[] tokens = line.split(delimiter);
+        String[] values = tokens[1].substring(1, tokens[1].length() - 1).split(
+                ",");
+        return values;
     }
 
     public static void main(String[] args) {
-        DataFileReader ip = new DataFileReader("dataset2");
+        DataFileReader ip = new DataFileReader("dataset2", "\t");
         try {
-            Instances data = ip.loadDataFromFile("\t");
+            Instances data = ip.loadDataFromFile();
             System.out.println(data.getDataSetSize());
         } catch (IOException e) {
             e.printStackTrace();

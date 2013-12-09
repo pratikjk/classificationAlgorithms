@@ -6,13 +6,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.buffalo.cse.dm.classification.decisiontree.TreeNode;
 import com.buffalo.cse.dm.preprocessing.Normalizer;
 
 public class Instances {
     private List<Instance> dataSet;
     private boolean isNormalized;
-    private List<AttributeType> header;
+    private HeaderFormat header;
     private Instances normalizedDataSet;
     private Instances testForCv;
 
@@ -38,11 +37,11 @@ public class Instances {
         this.dataSet = dataSet;
     }
 
-    public List<AttributeType> getHeader() {
+    public HeaderFormat getHeader() {
         return header;
     }
 
-    public void setHeader(List<AttributeType> header) {
+    public void setHeader(HeaderFormat header) {
         this.header = header;
     }
 

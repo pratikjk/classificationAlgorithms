@@ -1,9 +1,11 @@
 numeric
+nominal	{Sunny,Rainy}
 numeric
 numeric
 numeric
-nominal	{Present, Absent}
+nominal	{Present,Absent}
 numeric
+nominal	{Yes,No}
 numeric
 numeric
 numeric
