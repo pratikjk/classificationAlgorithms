@@ -35,4 +35,8 @@ public class HeaderFormat {
         return nominalValues.get(i);
     }
 
+    public int size() {
+        return headerType.size();
+    }
+
 }

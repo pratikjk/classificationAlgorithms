@@ -3,6 +3,7 @@ package com.buffalo.cse.dm.classification.decisiontree;
 import java.util.Collections;
 import java.util.List;
 
+import com.buffalo.cse.dm.core.AttributeType;
 import com.buffalo.cse.dm.core.InstanceComparator;
 import com.buffalo.cse.dm.core.Instances;
 
@@ -54,23 +55,52 @@ public class EntropyBasedAttributeSelection extends AttributeSelector {
         int[] count = getClassificationDistribution(data, 0,
                 data.getDataSetSize());
 
-        // find adjacent examples that differ in their target classification
         double maxGain = Double.MIN_VALUE;
         double splitPoint = 0;
         double splitPointIndex = -1;
-        int classVal = data.getInstance(0).getClassValue();
-
-        for (int i = 1; i < data.getDataSetSize(); i++) {
-            if (data.getInstance(i).getClassValue() != classVal) {
-                classVal = data.getInstance(i).getClassValue();
-                double temp = calcluateGainForSplit(data, count, i);
-                if (maxGain < temp) {
-                    maxGain = temp;
-                    splitPoint = data.getInstance(i)
-                            .getAttribute(attributeIndex).getAttributeValue();
-                    splitPointIndex = i;
+        // find adjacent examples that differ in their target classification for
+        // con-features
+        if (data.getHeader().getType(attributeIndex) == AttributeType.NUMERIC) {
+            int classVal = data.getInstance(0).getClassValue();
+            for (int i = 1; i < data.getDataSetSize(); i++) {
+                if (data.getInstance(i).getClassValue() != classVal) {
+                    classVal = data.getInstance(i).getClassValue();
+                    double temp = calcluateGainForSplit(data, count, i);
+                    if (maxGain < temp) {
+                        maxGain = temp;
+                        splitPoint = data.getInstance(i)
+                                .getAttribute(attributeIndex)
+                                .getAttributeValue();
+                        splitPointIndex = i;
+                    }
                 }
             }
+        }
+        // find best Nominal split for cat-features
+        else {
+            int nomValue = (int) data.getInstance(0)
+                    .getAttribute(attributeIndex).getAttributeValue();
+            for (int i = 1; i < data.getDataSetSize(); i++) {
+                if ((int) data.getInstance(i).getAttribute(attributeIndex)
+                        .getAttributeValue() != nomValue) {
+                    nomValue = (int) data.getInstance(i)
+                            .getAttribute(attributeIndex).getAttributeValue();
+                    double temp = calcluateGainForSplit(data, count, i);
+                    if (maxGain < temp) {
+                        maxGain = temp;
+                        splitPoint = data.getInstance(i)
+                                .getAttribute(attributeIndex)
+                                .getAttributeValue();
+                        splitPointIndex = i;
+                    }
+                }
+            }
+        }
+        if (splitPointIndex == -1) {
+            splitPoint = data.getInstance(0).getAttribute(attributeIndex)
+                    .getAttributeValue();
+            maxGain = 0.1;
+            splitPointIndex = 0;
         }
         return new double[] { splitPoint, maxGain, splitPointIndex };
     }

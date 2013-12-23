@@ -1,5 +1,6 @@
 package com.buffalo.cse.dm.classification.decisiontree;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -7,8 +8,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import com.buffalo.cse.dm.classification.analysis.ConfusionMatrix;
 import com.buffalo.cse.dm.core.Instance;
 import com.buffalo.cse.dm.core.Instances;
+import com.buffalo.cse.dm.io.DataFileReader;
+import com.buffalo.cse.dm.io.TestFileReader;
 
 public class RandomForest {
 
@@ -114,6 +118,59 @@ public class RandomForest {
 
     public static int getNumThreads() {
         return NUM_THREADS;
+    }
+
+    public static void main(String[] args) {
+        String fileName = "dataset3";
+        String delimiter = "\t";
+        DataFileReader ip = new DataFileReader(fileName, delimiter);
+
+        try {
+            Instances train = ip.loadDataFromFile();
+            // testdataset4(train);
+            Instances test = new TestFileReader(fileName, delimiter)
+                    .loadDataFromFile(train.getHeader());
+            testdataset3(train, test);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void testdataset3(Instances train, Instances tests) {
+        RandomForest rf = new RandomForest(5, train);
+        rf.startForestBuild();
+        ConfusionMatrix cm = new ConfusionMatrix();
+        for (Instance t : tests.getDataSet()) {
+            rf.classify(t);
+            // System.out.println(test.isCorrectClassified());
+            if (t.isCorrectClassified()) {
+                // true
+                if (t.getClassValue() == 1) {
+                    // positive
+                    cm.incrementTruePositive();
+                } else {
+                    // negative
+                    cm.incrementTrueNegative();
+                }
+            } else {
+                // false
+                if (t.getClassValue() == 1) {
+                    // positive
+                    cm.incrementFalsePositive();
+                } else {
+                    // negative
+                    cm.incrementFalseNegative();
+                }
+            }
+        }
+        System.out
+                .format("************* Random Forest withour CV *************\n");
+        System.out.format("\t Accuracy %f \n", cm.getAccuracy());
+        System.out.format("\t Precision %f \n", cm.getPrecision());
+        System.out.format("\t Recall %f \n", cm.getRecall());
+        System.out.format("\t F-Measure %f \n", cm.getFmeasure());
+        System.out.format("************************************************\n");
     }
 
 }

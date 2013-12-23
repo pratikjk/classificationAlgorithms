@@ -1,6 +1,7 @@
 package com.buffalo.cse.dm.main;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
@@ -14,6 +15,7 @@ import com.buffalo.cse.dm.classification.decisiontree.TreeNode;
 import com.buffalo.cse.dm.core.Instance;
 import com.buffalo.cse.dm.core.Instances;
 import com.buffalo.cse.dm.io.DataFileReader;
+import com.buffalo.cse.dm.io.TestFileReader;
 import com.buffalo.cse.dm.preprocessing.MinMaxNormalizer;
 
 public class MainDriver {
@@ -22,14 +24,20 @@ public class MainDriver {
      * @param args
      */
     public static void main(String[] args) {
-        DataFileReader ip = new DataFileReader("dataset1", "\t");
+        String fileName = "dataset1";
+        String delimiter = "\t";
+        DataFileReader ip = new DataFileReader(fileName, delimiter);
+        TestFileReader testReader = new TestFileReader(fileName, delimiter);
         try {
             Instances data = ip.loadDataFromFile();
             // MainDriver md = new MainDriver();
             // testCV(data);
             testCLassifyWithCV(data);
             // testRandomFoest(data);
-            testRandomForestWithCV(data);
+            // testRandomForestWithCV(data);
+            // HeaderFormat header = data.getHeader();
+            // Instances test = testReader.loadDataFromFile(header);
+            // testdataset4(data);
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -178,7 +186,7 @@ public class MainDriver {
         for (int i = 1; i <= crossValidation; i++) {
             Instances train = data.getTrainingForCrossValidation(
                     crossValidation, i);
-            RandomForest rf = new RandomForest(10, train);
+            RandomForest rf = new RandomForest(2, train);
             rf.startForestBuild();
             Instances test = data.getTestForCrossValidation();
             ConfusionMatrix cm = new ConfusionMatrix();
@@ -234,6 +242,54 @@ public class MainDriver {
         System.out.format("\t Average F-Measure %f \n",
                 averageConfusionMatrix.getFmeasure());
         System.out.format("************************************************\n");
+    }
+
+    public static void testdataset3(Instances data, Instances test) {
+
+    }
+
+    public static void testdataset4(Instances data) {
+
+        int size = data.getDataSetSize();
+        Collections.shuffle(data.getDataSet());
+        Instances train = data.getInstancesSubset(0, (size / 3) + 1);
+        Instances test = data.getInstancesSubset((size / 3) + 1);
+        DecisionTree classifier = new ID3();
+        classifier.buildModel(train);
+        classifier.printTree();
+
+        ConfusionMatrix cm = new ConfusionMatrix();
+        for (int j = 0; j < test.getDataSetSize(); j++) {
+            Instance t = test.getInstance(j);
+            classifier.classify(t);
+            // System.out.println(t.getPredictedClass()+" "+t.isCorrectClassified());
+            if (t.isCorrectClassified()) {
+                // true
+                if (t.getClassValue() == 1) {
+                    // positive
+                    cm.incrementTruePositive();
+                } else {
+                    // negative
+                    cm.incrementTrueNegative();
+                }
+            } else {
+                // false
+                if (t.getClassValue() == 1) {
+                    // positive
+                    cm.incrementFalsePositive();
+                } else {
+                    // negative
+                    cm.incrementFalseNegative();
+                }
+            }
+        }
+
+        System.out.format("\t Accuracy %f \n", cm.getAccuracy());
+        System.out.format("\t Precision %f \n", cm.getPrecision());
+        System.out.format("\t Recall %f \n", cm.getRecall());
+        System.out.format("\t F-Measure %f \n", cm.getFmeasure());
+        System.out.println();
+
     }
 
 }

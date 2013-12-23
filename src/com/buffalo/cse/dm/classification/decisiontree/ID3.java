@@ -1,15 +1,19 @@
 package com.buffalo.cse.dm.classification.decisiontree;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.buffalo.cse.dm.classification.analysis.ConfusionMatrix;
 import com.buffalo.cse.dm.classification.decisiontree.TreeNode.Binary;
 import com.buffalo.cse.dm.classification.decisiontree.TreeNode.Leaf;
 import com.buffalo.cse.dm.core.AttributeType;
 import com.buffalo.cse.dm.core.Instance;
 import com.buffalo.cse.dm.core.InstanceComparator;
 import com.buffalo.cse.dm.core.Instances;
+import com.buffalo.cse.dm.io.DataFileReader;
+import com.buffalo.cse.dm.io.TestFileReader;
 
 public class ID3 extends DecisionTree {
 
@@ -69,41 +73,41 @@ public class ID3 extends DecisionTree {
                     sm.getAttributeIndex());
             Collections.sort(data.getDataSet(), ic);
 
-            double splitPoint = (data.getInstance(sm.getSplitCriteriaIndex())
-                    .getAttribute(sm.getAttributeIndex()).getAttributeValue() + data
-                    .getInstance(sm.getSplitCriteriaIndex() - 1)
-                    .getAttribute(sm.getAttributeIndex()).getAttributeValue()) / 2;
-            sm.setSplitCriteria(splitPoint);
             Instances leftData = null;
             Instances rightData = null;
             if (data.getHeader().getType(sm.getAttributeIndex()) == AttributeType.NUMERIC) {
+                double splitPoint = (data
+                        .getInstance(sm.getSplitCriteriaIndex())
+                        .getAttribute(sm.getAttributeIndex())
+                        .getAttributeValue() + data
+                        .getInstance(sm.getSplitCriteriaIndex() - 1)
+                        .getAttribute(sm.getAttributeIndex())
+                        .getAttributeValue()) / 2;
+                sm.setSplitCriteria(splitPoint);
                 leftData = data.getInstancesSubset(0,
                         sm.getSplitCriteriaIndex());
                 rightData = data.getInstancesSubset(sm.getSplitCriteriaIndex());
             } else {
-                double val = data.getInstance(0)
-                        .getAttribute(sm.getAttributeIndex())
-                        .getAttributeValue();
-                int breakIndex = data.getDataSetSize() - 1;
-                for (int i = 1; i < data.getDataSetSize(); i++) {
-                    double curr = data.getInstance(i)
-                            .getAttribute(sm.getAttributeIndex())
-                            .getAttributeValue();
-                    if (curr != val) {
-                        breakIndex = i;
-                        break;
-                    }
-                }
-                leftData = data.getInstancesSubset(0, breakIndex);
-                rightData = data.getInstancesSubset(breakIndex);
-                sm.setSplitCriteria(1.0);
+                /*
+                 * double val = data.getInstance(0)
+                 * .getAttribute(sm.getAttributeIndex()) .getAttributeValue();
+                 * int breakIndex = data.getDataSetSize() - 1; for (int i = 1; i
+                 * < data.getDataSetSize(); i++) { double curr =
+                 * data.getInstance(i) .getAttribute(sm.getAttributeIndex())
+                 * .getAttributeValue(); if (curr != val) { breakIndex = i;
+                 * break; } }
+                 */
+                leftData = data.getInstancesSubset(0,
+                        sm.getSplitCriteriaIndex());
+                rightData = data.getInstancesSubset(sm.getSplitCriteriaIndex());
+                nonTargetAttributes.remove(nonTargetAttributes.indexOf(sm
+                        .getAttributeIndex()));
             }
 
             // make the old data ready for garbage collection
             data = null;
             node = new Binary();
             ((Binary) node).setSplitModel(sm);
-            // nonTargetAttributes.remove(nonTargetAttributes.indexOf(sm.getAttributeIndex()));
             ((Binary) node).setLChild(buildTree(leftData, nonTargetAttributes));
             ((Binary) node)
                     .setRChild(buildTree(rightData, nonTargetAttributes));
@@ -260,5 +264,86 @@ public class ID3 extends DecisionTree {
             return;
         }
 
+    }
+
+    public static void main(String[] args) {
+        String fileName = "dataset3";
+        String delimiter = "\t";
+        DataFileReader ip = new DataFileReader(fileName, delimiter);
+
+        try {
+            Instances train = ip.loadDataFromFile();
+            // testdataset4(train);
+            Instances test = new TestFileReader(fileName, delimiter)
+                    .loadDataFromFile(train.getHeader());
+            testdataset3(train, test);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void testdataset4(Instances data) {
+
+        int size = data.getDataSetSize();
+        Collections.shuffle(data.getDataSet());
+        Instances train = data.getInstancesSubset(0);
+        // Instances test = data.getInstancesSubset(9);
+        DecisionTree classifier = new ID3();
+        classifier.buildModel(train);
+        classifier.printTree();
+
+        /*
+         * ConfusionMatrix cm = new ConfusionMatrix(); for (int j = 0; j <
+         * test.getDataSetSize(); j++) { Instance t = test.getInstance(j);
+         * classifier.classify(t); //
+         * System.out.println(t.getPredictedClass()+" "
+         * +t.isCorrectClassified()); if (t.isCorrectClassified()) { // true if
+         * (t.getClassValue() == 1) { // positive cm.incrementTruePositive(); }
+         * else { // negative cm.incrementTrueNegative(); } } else { // false if
+         * (t.getClassValue() == 1) { // positive cm.incrementFalsePositive(); }
+         * else { // negative cm.incrementFalseNegative(); } } }
+         * 
+         * System.out.format("\t Accuracy %f \n", cm.getAccuracy());
+         * System.out.format("\t Precision %f \n", cm.getPrecision());
+         * System.out.format("\t Recall %f \n", cm.getRecall());
+         * System.out.format("\t F-Measure %f \n", cm.getFmeasure());
+         * System.out.println();
+         */
+
+    }
+
+    public static void testdataset3(Instances train, Instances test) {
+        DecisionTree classifier = new ID3();
+        classifier.buildModel(train);
+        // classifier.printTree();
+        ConfusionMatrix cm = new ConfusionMatrix();
+        for (int j = 0; j < test.getDataSetSize(); j++) {
+            classifier.classify(test.getInstance(j));
+            Instance t = test.getInstance(j);
+            if (t.isCorrectClassified()) {
+                // true
+                if (t.getClassValue() == 1) {
+                    // positive
+                    cm.incrementTruePositive();
+                } else {
+                    // negative
+                    cm.incrementTrueNegative();
+                }
+            } else {
+                // false
+                if (t.getClassValue() == 1) {
+                    // positive
+                    cm.incrementFalsePositive();
+                } else {
+                    // negative
+                    cm.incrementFalseNegative();
+                }
+            }
+        }
+        System.out.format("\t Accuracy %f \n", cm.getAccuracy());
+        System.out.format("\t Precision %f \n", cm.getPrecision());
+        System.out.format("\t Recall %f \n", cm.getRecall());
+        System.out.format("\t F-Measure %f \n", cm.getFmeasure());
     }
 }
